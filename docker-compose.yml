@@ -13,6 +13,18 @@ services:
     ports:
       - "8000:8000"
 
+  worker:
+    build:
+      context: .
+    command: uv run --no-dev celery -A app.workers.celery_app.celery_app worker --loglevel=info
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+      - redis
+      - qdrant
+      - minio
+
   postgres:
     image: postgres:18
     environment:

@@ -1,10 +1,8 @@
 import subprocess
 
 COMMANDS = [
-    ["ruff", "format", "."],
-    ["ruff", "check", ".", "--fix"],
-    ["ruff", "check", "."],
     ["ruff", "format", "--check", "."],
+    ["ruff", "check", "."],
     ["pyright"],
     ["pytest"],
 ]

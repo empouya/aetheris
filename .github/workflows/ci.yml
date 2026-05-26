@@ -1,0 +1,37 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+
+    env:
+      AETHERIS_ENVIRONMENT: testing
+      AETHERIS_DATABASE_URL: postgresql+asyncpg://test:test@localhost:5432/test
+      AETHERIS_REDIS_URL: redis://localhost:6379/15
+      AETHERIS_QDRANT_URL: http://localhost:6333
+      AETHERIS_MINIO_ENDPOINT: localhost:9000
+      AETHERIS_MINIO_ACCESS_KEY: test
+      AETHERIS_MINIO_SECRET_KEY: test
+      AETHERIS_MINIO_BUCKET: test
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Run checks
+        run: uv run python -m scripts.check_ci
