@@ -1,3 +1,4 @@
+from datetime import UTC, datetime
 from uuid import UUID
 
 from sqlalchemy import select
@@ -45,3 +46,7 @@ class ApiKeyRepository:
             )
         )
         return list(result.scalars().all())
+
+    async def mark_used(self, api_key: ApiKey) -> None:
+        api_key.last_used_at = datetime.now(UTC)
+        await self.session.flush()

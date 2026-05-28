@@ -9,7 +9,7 @@ from app.core.responses import success_response
 from app.modules.api_keys.repository import ApiKeyRepository
 from app.modules.api_keys.schemas import ApiKeyCreate, ApiKeyCreateResponse, ApiKeyRead
 from app.modules.api_keys.service import ApiKeyNotFoundError, ApiKeyService
-from app.modules.auth.dependencies import CurrentUserDependency
+from app.modules.auth.dependencies import CurrentTenantContextDependency, CurrentUserDependency
 from app.modules.organizations.repository import OrganizationRepository
 from app.modules.organizations.service import OrganizationAccessDeniedError
 
@@ -57,10 +57,16 @@ async def create_api_key(
 
 @router.get("")
 async def list_api_keys(
-    current_user: CurrentUserDependency,
+    tenant_context: CurrentTenantContextDependency,
     session: DatabaseSessionDependency,
     organization_id: OrganizationIdQuery,
 ) -> dict[str, object]:
+    if tenant_context.user is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User authentication required.",
+        )
+
     service = ApiKeyService(
         repository=ApiKeyRepository(session),
         organization_repository=OrganizationRepository(session),
@@ -69,7 +75,7 @@ async def list_api_keys(
     try:
         api_keys = await service.list_api_keys(
             organization_id=organization_id,
-            requester_user_id=current_user.id,
+            requester_user_id=tenant_context.user.id,
         )
     except OrganizationAccessDeniedError as exc:
         raise HTTPException(
@@ -85,10 +91,16 @@ async def list_api_keys(
 @router.delete("/{api_key_id}")
 async def revoke_api_key(
     api_key_id: UUID,
-    current_user: CurrentUserDependency,
+    tenant_context: CurrentTenantContextDependency,
     session: DatabaseSessionDependency,
     organization_id: OrganizationIdQuery,
 ) -> dict[str, object]:
+    if tenant_context.user is None:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User authentication required.",
+        )
+
     service = ApiKeyService(
         repository=ApiKeyRepository(session),
         organization_repository=OrganizationRepository(session),
@@ -98,7 +110,7 @@ async def revoke_api_key(
         await service.revoke_api_key(
             api_key_id=api_key_id,
             organization_id=organization_id,
-            requester_user_id=current_user.id,
+            requester_user_id=tenant_context.user.id,
         )
     except OrganizationAccessDeniedError as exc:
         raise HTTPException(
