@@ -6,9 +6,16 @@ from app.modules.organizations.repository import OrganizationRepository
 from app.modules.organizations.schemas import OrganizationCreate
 
 OWNER_ROLE = "owner"
+ADMIN_ROLE = "admin"
+MEMBER_ROLE = "member"
+VALID_MEMBERSHIP_ROLES = {OWNER_ROLE, ADMIN_ROLE, MEMBER_ROLE}
 
 
 class OrganizationSlugAlreadyExistsError(Exception):
+    pass
+
+
+class OrganizationAccessDeniedError(Exception):
     pass
 
 
@@ -52,3 +59,32 @@ class OrganizationService:
 
     async def list_user_organizations(self, user_id: UUID) -> list[Organization]:
         return await self.repository.list_for_user(user_id)
+
+    async def ensure_user_is_member(
+        self,
+        *,
+        organization_id: UUID,
+        user_id: UUID,
+    ) -> Membership:
+        membership = await self.repository.get_membership(
+            organization_id=organization_id,
+            user_id=user_id,
+        )
+
+        if membership is None:
+            raise OrganizationAccessDeniedError("User does not belong to this organization.")
+
+        return membership
+
+    async def list_organization_members(
+        self,
+        *,
+        organization_id: UUID,
+        requester_user_id: UUID,
+    ) -> list[dict[str, object]]:
+        await self.ensure_user_is_member(
+            organization_id=organization_id,
+            user_id=requester_user_id,
+        )
+
+        return await self.repository.list_members(organization_id)
