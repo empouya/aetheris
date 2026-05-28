@@ -1,9 +1,13 @@
 from datetime import UTC, datetime
 
-from app.core.security import hash_password
+from app.core.security import hash_password, verify_password
 from app.modules.auth.models import User
 from app.modules.auth.repository import UserRepository
 from app.modules.auth.schemas import UserCreate
+
+
+class AuthenticationFailedError(Exception):
+    pass
 
 
 class UserAlreadyExistsError(Exception):
@@ -30,3 +34,13 @@ class UserAccountService:
         )
 
         return await self.repository.add(user)
+
+    async def authenticate_user(self, email: str, password: str) -> User:
+        user = await self.repository.get_by_email(email)
+        if user is None or not user.is_active:
+            raise AuthenticationFailedError("Invalid credentials.")
+
+        if not verify_password(password, user.password_hash):
+            raise AuthenticationFailedError("Invalid credentials.")
+
+        return user

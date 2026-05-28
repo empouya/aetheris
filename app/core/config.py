@@ -29,6 +29,10 @@ class Settings(BaseSettings):
     minio_secure: bool = False
     minio_bucket: str = ""
 
+    jwt_secret_key: str = ""
+    jwt_algorithm: str = "HS256"
+    access_token_expire_minutes: int = 30
+
     @model_validator(mode="after")
     def validate_required_runtime_settings(self) -> "Settings":
         required_fields = {
@@ -39,6 +43,7 @@ class Settings(BaseSettings):
             "minio_access_key": self.minio_access_key,
             "minio_secret_key": self.minio_secret_key,
             "minio_bucket": self.minio_bucket,
+            "jwt_secret_key": self.jwt_secret_key,
         }
 
         missing_fields = [name for name, value in required_fields.items() if not value]

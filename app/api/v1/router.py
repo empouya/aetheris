@@ -4,8 +4,11 @@ from fastapi import APIRouter, Response, status
 
 from app.core.readiness import collect_readiness
 from app.core.responses import success_response
+from app.modules.auth.router import router as auth_router
 
 router = APIRouter()
+
+router.include_router(auth_router)
 
 
 @router.get("/health")
