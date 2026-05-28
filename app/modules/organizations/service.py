@@ -5,10 +5,10 @@ from app.modules.organizations.models import Membership, Organization
 from app.modules.organizations.repository import OrganizationRepository
 from app.modules.organizations.schemas import OrganizationCreate
 
-OWNER_ROLE = "owner"
+ORGANIZATION_OWNER_ROLE = "owner"
 ADMIN_ROLE = "admin"
 MEMBER_ROLE = "member"
-VALID_MEMBERSHIP_ROLES = {OWNER_ROLE, ADMIN_ROLE, MEMBER_ROLE}
+VALID_MEMBERSHIP_ROLES = {ORGANIZATION_OWNER_ROLE, ADMIN_ROLE, MEMBER_ROLE}
 
 
 class OrganizationSlugAlreadyExistsError(Exception):
@@ -50,7 +50,7 @@ class OrganizationService:
         membership = Membership(
             organization_id=organization.id,
             user_id=owner_user_id,
-            role=OWNER_ROLE,
+            role=ORGANIZATION_OWNER_ROLE,
             created_at=now,
         )
         await self.repository.add_membership(membership)
