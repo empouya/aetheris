@@ -1,4 +1,5 @@
 from typing import Annotated
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -73,3 +74,39 @@ async def upload_document(
             "job": ProcessingJobRead.model_validate(job).model_dump(),
         }
     )
+
+
+@router.get("")
+async def list_documents(
+    tenant_context: CurrentTenantContextDependency,
+    session: DatabaseSessionDependency,
+) -> dict[str, object]:
+    repository = DocumentRepository(session)
+
+    documents = await repository.list_for_organization(tenant_context.organization_id)
+
+    return success_response(
+        data=[DocumentRead.model_validate(document).model_dump() for document in documents]
+    )
+
+
+@router.get("/{document_id}")
+async def get_document(
+    document_id: UUID,
+    tenant_context: CurrentTenantContextDependency,
+    session: DatabaseSessionDependency,
+) -> dict[str, object]:
+    repository = DocumentRepository(session)
+
+    document = await repository.get_by_id(
+        document_id=document_id,
+        organization_id=tenant_context.organization_id,
+    )
+
+    if document is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Document not found.",
+        )
+
+    return success_response(data=DocumentRead.model_validate(document).model_dump())
