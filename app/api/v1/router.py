@@ -6,6 +6,7 @@ from app.core.readiness import collect_readiness
 from app.core.responses import success_response
 from app.modules.api_keys.router import router as api_keys_router
 from app.modules.auth.router import router as auth_router
+from app.modules.documents.router import router as documents_router
 from app.modules.organizations.router import router as organizations_router
 
 router = APIRouter()
@@ -13,6 +14,7 @@ router = APIRouter()
 router.include_router(auth_router)
 router.include_router(organizations_router)
 router.include_router(api_keys_router)
+router.include_router(documents_router)
 
 
 @router.get("/health")
