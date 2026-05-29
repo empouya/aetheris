@@ -10,9 +10,10 @@ class DocumentRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def add(self, document: Document) -> None:
+    async def add(self, document: Document) -> Document:
         self.session.add(document)
         await self.session.flush()
+        return document
 
     async def get_by_id(
         self,
@@ -29,13 +30,7 @@ class DocumentRepository:
         )
         return result.scalar_one_or_none()
 
-    async def list_for_organization(
-        self,
-        *,
-        organization_id: UUID,
-        limit: int = 20,
-        offset: int = 0,
-    ) -> list[Document]:
+    async def list_for_organization(self, organization_id: UUID) -> list[Document]:
         result = await self.session.execute(
             select(Document)
             .where(
@@ -43,8 +38,6 @@ class DocumentRepository:
                 Document.deleted_at.is_(None),
             )
             .order_by(Document.created_at.desc())
-            .limit(limit)
-            .offset(offset)
         )
         return list(result.scalars().all())
 
@@ -53,9 +46,10 @@ class ProcessingJobRepository:
     def __init__(self, session: AsyncSession) -> None:
         self.session = session
 
-    async def add(self, job: ProcessingJob) -> None:
+    async def add(self, job: ProcessingJob) -> ProcessingJob:
         self.session.add(job)
         await self.session.flush()
+        return job
 
     async def get_by_id(
         self,
@@ -71,18 +65,10 @@ class ProcessingJobRepository:
         )
         return result.scalar_one_or_none()
 
-    async def list_for_organization(
-        self,
-        *,
-        organization_id: UUID,
-        limit: int = 20,
-        offset: int = 0,
-    ) -> list[ProcessingJob]:
+    async def list_for_organization(self, organization_id: UUID) -> list[ProcessingJob]:
         result = await self.session.execute(
             select(ProcessingJob)
             .where(ProcessingJob.organization_id == organization_id)
             .order_by(ProcessingJob.created_at.desc())
-            .limit(limit)
-            .offset(offset)
         )
         return list(result.scalars().all())
