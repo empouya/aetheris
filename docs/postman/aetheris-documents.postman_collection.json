@@ -1,0 +1,300 @@
+{
+    "info": {
+        "name": "Aetheris Documents API",
+        "_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        "description": "Postman collection for Aetheris document upload, document retrieval, and processing job status endpoints.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Documents",
+            "item": [
+                {
+                    "name": "Upload Document",
+                    "request": {
+                        "method": "POST",
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": "{{base_url}}/documents?organization_id={{organization_id}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('document uploaded and job queued', function () {",
+                                    "  pm.response.to.have.status(201);",
+                                    "  const json = pm.response.json();",
+                                    "  pm.expect(json.success).to.eql(true);",
+                                    "  pm.expect(json.data.document.id).to.be.a('string');",
+                                    "  pm.expect(json.data.document.status).to.eql('UPLOADED');",
+                                    "  pm.expect(json.data.job.id).to.be.a('string');",
+                                    "  pm.expect(json.data.job.status).to.eql('QUEUED');",
+                                    "  pm.environment.set('document_id', json.data.document.id);",
+                                    "  pm.environment.set('job_id', json.data.job.id);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Upload Document Rejected - Unsupported Type",
+                    "request": {
+                        "method": "POST",
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": "{{base_url}}/documents?organization_id={{organization_id}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('unsupported file type is rejected', function () {",
+                                    "  pm.response.to.have.status(415);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Upload Document Rejected - Unauthenticated",
+                    "request": {
+                        "method": "POST",
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": "{{base_url}}/documents?organization_id={{organization_id}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('unauthenticated upload is rejected', function () {",
+                                    "  pm.response.to.have.status(401);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "List Documents",
+                    "request": {
+                        "method": "GET",
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "url": "{{base_url}}/documents?organization_id={{organization_id}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('documents listed for tenant', function () {",
+                                    "  pm.response.to.have.status(200);",
+                                    "  const json = pm.response.json();",
+                                    "  pm.expect(json.success).to.eql(true);",
+                                    "  pm.expect(json.data).to.be.an('array');",
+                                    "  pm.expect(json.data.length).to.be.greaterThan(0);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Get Document",
+                    "request": {
+                        "method": "GET",
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "url": "{{base_url}}/documents/{{document_id}}?organization_id={{organization_id}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('document retrieved with correct status', function () {",
+                                    "  pm.response.to.have.status(200);",
+                                    "  const json = pm.response.json();",
+                                    "  pm.expect(json.success).to.eql(true);",
+                                    "  pm.expect(json.data.id).to.eql(pm.environment.get('document_id'));",
+                                    "  pm.expect(json.data.status).to.eql('UPLOADED');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Get Document Not Found",
+                    "request": {
+                        "method": "GET",
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "url": "{{base_url}}/documents/00000000-0000-0000-0000-000000000000?organization_id={{organization_id}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('unknown document returns 404', function () {",
+                                    "  pm.response.to.have.status(404);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "Jobs",
+            "item": [
+                {
+                    "name": "Get Job Status",
+                    "request": {
+                        "method": "GET",
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "url": "{{base_url}}/jobs/{{job_id}}?organization_id={{organization_id}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('job status retrieved', function () {",
+                                    "  pm.response.to.have.status(200);",
+                                    "  const json = pm.response.json();",
+                                    "  pm.expect(json.success).to.eql(true);",
+                                    "  pm.expect(json.data.id).to.eql(pm.environment.get('job_id'));",
+                                    "  pm.expect(['QUEUED', 'PROCESSING', 'COMPLETED', 'FAILED']).to.include(json.data.status);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Get Job Not Found",
+                    "request": {
+                        "method": "GET",
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "url": "{{base_url}}/jobs/00000000-0000-0000-0000-000000000000?organization_id={{organization_id}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('unknown job returns 404', function () {",
+                                    "  pm.response.to.have.status(404);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
