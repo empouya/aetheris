@@ -47,6 +47,20 @@ class ObjectStorageService:
             raise ObjectStorageError(f"Failed to upload object '{object_path}': {exc}") from exc
         return object_path
 
+    async def download_file(self, *, object_path: str) -> bytes:
+        try:
+            response = await asyncio.to_thread(
+                self._client.get_object,
+                self._bucket_name,
+                object_path,
+            )
+            data = await asyncio.to_thread(response.read)
+            await asyncio.to_thread(response.close)
+            await asyncio.to_thread(response.release_conn)
+            return data
+        except S3Error as exc:
+            raise ObjectStorageError(f"Failed to download object '{object_path}': {exc}") from exc
+
     async def get_presigned_url(
         self,
         *,
