@@ -10,7 +10,7 @@ celery_app = Celery(
     "aetheris",
     broker=settings.redis_url,
     backend=settings.redis_url,
-    include=["app.workers.tasks"],
+    include=["app.workers.tasks", "app.workers.ingestion"],
 )
 
 celery_app.conf.update(

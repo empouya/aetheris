@@ -48,6 +48,7 @@ class Settings(BaseSettings):
             "minio_secret_key": self.minio_secret_key,
             "minio_bucket": self.minio_bucket,
             "jwt_secret_key": self.jwt_secret_key,
+            "cohere_api_key": self.cohere_api_key,
         }
 
         missing_fields = [name for name, value in required_fields.items() if not value]

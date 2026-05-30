@@ -1,5 +1,6 @@
 import hashlib
 from datetime import UTC, datetime
+from typing import Any, cast
 from uuid import UUID, uuid4
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -7,6 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.storage.service import ObjectStorageService
 from app.modules.documents.models import Document, DocumentStatus, JobStatus, JobType, ProcessingJob
 from app.modules.documents.repository import DocumentRepository, ProcessingJobRepository
+from app.workers.ingestion import process_document
 
 ALLOWED_CONTENT_TYPES = {
     "application/pdf",
@@ -97,6 +99,12 @@ class DocumentService:
                 retry_count=0,
                 created_at=now,
             )
+        )
+
+        cast(Any, process_document).delay(
+            document_id=str(document_id),
+            job_id=str(job.id),
+            organization_id=str(organization_id),
         )
 
         return document, job
