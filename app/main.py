@@ -2,11 +2,13 @@ from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from qdrant_client import QdrantClient
 
 from app.api.v1.router import router as api_v1_router
 from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.core.middleware import request_id_middleware
+from app.core.qdrant.service import QdrantService
 from app.core.storage.client import create_minio_client
 from app.core.storage.service import ObjectStorageService
 
@@ -24,6 +26,9 @@ def create_app() -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
         await storage_service.ensure_bucket_exists()
+        qdrant_client = QdrantClient(url=settings.qdrant_url)
+        qdrant_service = QdrantService(client=qdrant_client)
+        await qdrant_service.ensure_collection_exists()
         yield
 
     app = FastAPI(

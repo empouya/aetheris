@@ -35,6 +35,8 @@ class Settings(BaseSettings):
 
     refresh_token_expire_days: int = 30
 
+    cohere_api_key: str = ""
+
     @model_validator(mode="after")
     def validate_required_runtime_settings(self) -> "Settings":
         required_fields = {
