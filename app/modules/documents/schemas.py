@@ -32,3 +32,17 @@ class ProcessingJobRead(BaseModel):
     created_at: datetime
     started_at: datetime | None
     completed_at: datetime | None
+
+
+class DocumentChunkRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    organization_id: UUID
+    document_id: UUID
+    chunk_index: int
+    token_count: int
+    text_hash: str
+    chunk_text: str
+    metadata_json: str
+    created_at: datetime

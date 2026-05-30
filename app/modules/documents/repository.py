@@ -3,7 +3,7 @@ from uuid import UUID
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.modules.documents.models import Document, ProcessingJob
+from app.modules.documents.models import Document, DocumentChunk, ProcessingJob
 
 
 class DocumentRepository:
@@ -72,3 +72,44 @@ class ProcessingJobRepository:
             .order_by(ProcessingJob.created_at.desc())
         )
         return list(result.scalars().all())
+
+
+class DocumentChunkRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self.session = session
+
+    async def add_batch(self, chunks: list[DocumentChunk]) -> list[DocumentChunk]:
+        for chunk in chunks:
+            self.session.add(chunk)
+        await self.session.flush()
+        return chunks
+
+    async def get_by_document(
+        self,
+        *,
+        document_id: UUID,
+        organization_id: UUID,
+    ) -> list[DocumentChunk]:
+        result = await self.session.execute(
+            select(DocumentChunk)
+            .where(
+                DocumentChunk.document_id == document_id,
+                DocumentChunk.organization_id == organization_id,
+            )
+            .order_by(DocumentChunk.chunk_index)
+        )
+        return list(result.scalars().all())
+
+    async def delete_by_document(
+        self,
+        *,
+        document_id: UUID,
+        organization_id: UUID,
+    ) -> None:
+        chunks = await self.get_by_document(
+            document_id=document_id,
+            organization_id=organization_id,
+        )
+        for chunk in chunks:
+            await self.session.delete(chunk)
+        await self.session.flush()
