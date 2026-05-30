@@ -1,0 +1,163 @@
+{
+    "info": {
+        "name": "Aetheris Ingestion Pipeline API",
+        "_postman_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
+        "description": "Postman collection for verifying the full document ingestion pipeline: upload, processing job lifecycle, and document status transitions.",
+        "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+    },
+    "item": [
+        {
+            "name": "Ingestion Pipeline",
+            "item": [
+                {
+                    "name": "Upload Document for Processing",
+                    "request": {
+                        "method": "POST",
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "body": {
+                            "mode": "formdata",
+                            "formdata": [
+                                {
+                                    "key": "file",
+                                    "type": "file",
+                                    "src": []
+                                }
+                            ]
+                        },
+                        "url": "{{base_url}}/documents?organization_id={{organization_id}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('document uploaded and job queued for processing', function () {",
+                                    "  pm.response.to.have.status(201);",
+                                    "  const json = pm.response.json();",
+                                    "  pm.expect(json.success).to.eql(true);",
+                                    "  pm.expect(json.data.document.status).to.eql('UPLOADED');",
+                                    "  pm.expect(json.data.job.status).to.eql('QUEUED');",
+                                    "  pm.environment.set('pipeline_document_id', json.data.document.id);",
+                                    "  pm.environment.set('pipeline_job_id', json.data.job.id);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Poll Job Status",
+                    "request": {
+                        "method": "GET",
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "url": "{{base_url}}/jobs/{{pipeline_job_id}}?organization_id={{organization_id}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('job is in a valid processing state', function () {",
+                                    "  pm.response.to.have.status(200);",
+                                    "  const json = pm.response.json();",
+                                    "  pm.expect(json.success).to.eql(true);",
+                                    "  pm.expect(['QUEUED', 'PROCESSING', 'COMPLETED', 'FAILED']).to.include(json.data.status);",
+                                    "  pm.environment.set('pipeline_job_status', json.data.status);",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Verify Job Completed",
+                    "request": {
+                        "method": "GET",
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "url": "{{base_url}}/jobs/{{pipeline_job_id}}?organization_id={{organization_id}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('job reached completed state', function () {",
+                                    "  pm.response.to.have.status(200);",
+                                    "  const json = pm.response.json();",
+                                    "  pm.expect(json.success).to.eql(true);",
+                                    "  pm.expect(json.data.status).to.eql('COMPLETED');",
+                                    "  pm.expect(json.data.started_at).to.be.a('string');",
+                                    "  pm.expect(json.data.completed_at).to.be.a('string');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                },
+                {
+                    "name": "Verify Document Ready",
+                    "request": {
+                        "method": "GET",
+                        "auth": {
+                            "type": "bearer",
+                            "bearer": [
+                                {
+                                    "key": "token",
+                                    "value": "{{access_token}}",
+                                    "type": "string"
+                                }
+                            ]
+                        },
+                        "url": "{{base_url}}/documents/{{pipeline_document_id}}?organization_id={{organization_id}}"
+                    },
+                    "event": [
+                        {
+                            "listen": "test",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "pm.test('document status is READY after processing', function () {",
+                                    "  pm.response.to.have.status(200);",
+                                    "  const json = pm.response.json();",
+                                    "  pm.expect(json.success).to.eql(true);",
+                                    "  pm.expect(json.data.status).to.eql('READY');",
+                                    "});"
+                                ]
+                            }
+                        }
+                    ]
+                }
+            ]
+        }
+    ]
+}
