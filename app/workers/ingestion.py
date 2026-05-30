@@ -8,13 +8,12 @@ import cohere
 from qdrant_client import QdrantClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
+import app.core.registry  # noqa: F401  # type: ignore[reportUnusedImport]
 from app.core.config import get_settings
 from app.core.embeddings.service import EMBEDDING_MODEL, EmbeddingService
 from app.core.qdrant.service import QdrantService, VectorPayload
 from app.core.storage.client import create_minio_client
 from app.core.storage.service import ObjectStorageService
-from app.modules.api_keys.models import ApiKey  # noqa: F401
-from app.modules.auth.models import RefreshSession, User  # noqa: F401
 from app.modules.documents.models import (
     Document,
     DocumentChunk,
@@ -27,7 +26,6 @@ from app.modules.documents.repository import (
     DocumentRepository,
     ProcessingJobRepository,
 )
-from app.modules.organizations.models import Membership, Organization  # noqa: F401
 from app.modules.processing.chunker import TextChunker
 from app.modules.processing.extractor import TextExtractor
 from app.workers.celery_app import celery_app

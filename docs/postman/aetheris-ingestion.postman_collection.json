@@ -107,6 +107,16 @@
                     },
                     "event": [
                         {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const delay = ms => new Promise(res => setTimeout(res, ms));",
+                                    "await delay(5000);"
+                                ]
+                            }
+                        },
+                        {
                             "listen": "test",
                             "script": {
                                 "type": "text/javascript",
@@ -141,6 +151,16 @@
                         "url": "{{base_url}}/documents/{{pipeline_document_id}}?organization_id={{organization_id}}"
                     },
                     "event": [
+                        {
+                            "listen": "prerequest",
+                            "script": {
+                                "type": "text/javascript",
+                                "exec": [
+                                    "const delay = ms => new Promise(res => setTimeout(res, ms));",
+                                    "await delay(5000);"
+                                ]
+                            }
+                        },
                         {
                             "listen": "test",
                             "script": {

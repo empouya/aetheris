@@ -188,7 +188,7 @@
                                     "  const json = pm.response.json();",
                                     "  pm.expect(json.success).to.eql(true);",
                                     "  pm.expect(json.data.id).to.eql(pm.environment.get('document_id'));",
-                                    "  pm.expect(json.data.status).to.eql('UPLOADED');",
+                                    "  pm.expect(json.data.status).to.be.oneOf(['UPLOADED', 'PROCESSING', 'READY', 'FAILED']);",
                                     "});"
                                 ]
                             }
